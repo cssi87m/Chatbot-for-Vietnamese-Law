@@ -10,6 +10,8 @@ from sentence_transformers import SentenceTransformerTrainingArguments, Sentence
 from sentence_transformers.training_args import BatchSamplers 
 import pandas as pd
 from datasets import Dataset
+import argparse
+from typing import List, Tuple
 from utils import * 
 
 VECTOR_DB = Chroma(
@@ -33,10 +35,9 @@ Hãy trình bày một cách logic, mạch lạc và dễ hiểu, đảm bảo t
 LANGUAGE_MODEL = ChatOllama(
     model = "llama3.2",
     num_predict = -1,
-    additional_kwargs = {'gpu': True}
 )
 
-def process_query(query: str, top_k=5) -> List[Document]:
+def process_query(query: str, top_k=5) -> List[Tuple[Document, float]]:
     """Processes the query and retrieves the most relevant documents."""
     results = VECTOR_DB.similarity_search_with_score(query, top_k)
     return results
@@ -60,11 +61,10 @@ def deploy_pipeline():
     """Deploys the query processing and retrieval pipeline."""
     print("Pipeline deployed successfully. Ready to handle queries.")
 
-def finetune_embedding(**kwargs):
+def finetune_embedding(dataset_dir: str, output: str):
     """
         dataset: {"question": "<question>", "context": "<relevant context to answer>"}
     """ 
-    dataset_dir  = kwargs.get("dataset_dir")
     dataset = pd.read_csv(dataset_dir)
     dataset.rename(columns={"question": "anchor", "context": "positive"}, inplace=True)
 
@@ -77,7 +77,7 @@ def finetune_embedding(**kwargs):
 
     # Train the model
     training_args =  SentenceTransformerTrainingArguments(
-        output_dir=kwargs.get("output"), # output directory and hugging face model ID
+        output_dir = output, # output directory and hugging face model ID
         num_train_epochs=4,                         # number of epochs
         per_device_train_batch_size=1,             # train batch size
         gradient_accumulation_steps=16,             # for a global batch size of 512
@@ -105,7 +105,7 @@ def finetune_embedding(**kwargs):
     print("Training the model...")
     trainer.train()
     print("Model training complete.")
-    trainer.save_model(kwargs.get("output"))
+    trainer.save_model(output)
     print("Model saved successfully.")
 
 def main(): 
@@ -116,7 +116,12 @@ def main():
     # retrieved_chunks = [document[0].page_content for document in retrieved_documents]
     # response = generate_response(query = query, retrieved_chunks=retrieved_chunks)
     # print(response.content)
-    finetune_embedding(dataset_dir = "train_data.csv", output = "output")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--dataset_dir", type=str, default="train_data.csv")
+    parser.add_argument("--output", type=str, default="output")
+
+    args = parser.parse_args()
+    finetune_embedding(args.dataset_dir, args.output)
 
 if __name__ == "__main__":
     main()
