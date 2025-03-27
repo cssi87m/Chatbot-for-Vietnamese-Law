@@ -1,11 +1,10 @@
 import argparse
 import os
 import shutil
-from tqdm import tqdm
 from langchain_text_splitters.character import RecursiveCharacterTextSplitter
 from langchain_core.documents.base import Document
 from langchain_community.vectorstores.chroma import Chroma
-from config import CHROMA_PATH, DATA_PATH, EMBEDDING, VECTORDATABASE_PATH
+from utils import CHROMA_PATH, DATA_PATH, EMBEDDING, VECTORDATABASE_PATH
 
 def main():
 

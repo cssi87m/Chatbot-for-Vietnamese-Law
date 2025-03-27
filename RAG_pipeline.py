@@ -5,7 +5,12 @@ from langchain_community.utils.math import cosine_similarity
 from langchain.prompts import ChatPromptTemplate
 import numpy as np
 from langchain_ollama import ChatOllama
-from config import * 
+from sentence_transformers.losses import MultipleNegativesRankingLoss
+from sentence_transformers import SentenceTransformerTrainingArguments, SentenceTransformerTrainer
+from sentence_transformers.training_args import BatchSamplers 
+import pandas as pd
+from datasets import Dataset
+from utils import * 
 
 VECTOR_DB = Chroma(
     persist_directory=CHROMA_PATH,
@@ -33,8 +38,6 @@ LANGUAGE_MODEL = ChatOllama(
 
 def process_query(query: str, top_k=5) -> List[Document]:
     """Processes the query and retrieves the most relevant documents."""
-    # query_embedding = embedding_model.embed_query(query)
-    # print(query_embedding)
     results = VECTOR_DB.similarity_search_with_score(query, top_k)
     return results
 
@@ -57,14 +60,63 @@ def deploy_pipeline():
     """Deploys the query processing and retrieval pipeline."""
     print("Pipeline deployed successfully. Ready to handle queries.")
 
+def finetune_embedding(**kwargs):
+    """
+        dataset: {"question": "<question>", "context": "<relevant context to answer>"}
+    """ 
+    dataset_dir  = kwargs.get("dataset_dir")
+    dataset = pd.read_csv(dataset_dir)
+    dataset.rename(columns={"question": "anchor", "context": "positive"}, inplace=True)
+
+    dataset.drop(columns = ["answer", "cid"], inplace=True)
+    dataset = Dataset.from_pandas(dataset)
+
+    # Initialeize the loss function
+    model = EMBEDDING._client
+    loss = MultipleNegativesRankingLoss(model=model)
+
+    # Train the model
+    training_args =  SentenceTransformerTrainingArguments(
+        output_dir=kwargs.get("output"), # output directory and hugging face model ID
+        num_train_epochs=4,                         # number of epochs
+        per_device_train_batch_size=1,             # train batch size
+        gradient_accumulation_steps=16,             # for a global batch size of 512
+        per_device_eval_batch_size=2,              # evaluation batch size
+        warmup_ratio=0.1,                           # warmup ratio
+        learning_rate=2e-5,                         # learning rate, 2e-5 is a good value
+        lr_scheduler_type="cosine",                 # use constant learning rate scheduler
+        optim="adamw_torch_fused",                  # use fused adamw optimizer
+        tf32=True,                                  # use tf32 precision
+        bf16=True,                                  # use bf16 precision
+        batch_sampler=BatchSamplers.NO_DUPLICATES,  # MultipleNegativesRankingLoss benefits from no duplicate samples in a batch
+        eval_strategy="no",                      # evaluate after each epoch
+        save_strategy="epoch",                      # save after each epoch
+        logging_steps=1,                           # log every 1 steps
+        save_total_limit=3,                         # save only the last 3 models
+        # load_best_model_at_end=True,                # load the best model when training ends
+    )
+
+    trainer = SentenceTransformerTrainer(
+        model=model,
+        loss=loss,
+        train_dataset=dataset,
+        args=training_args,
+    )
+    print("Training the model...")
+    trainer.train()
+    print("Model training complete.")
+    trainer.save_model(kwargs.get("output"))
+    print("Model saved successfully.")
+
 def main(): 
-    deploy_pipeline()
-    print("Nhập câu hỏi của bạn: ")
-    query = input()
-    retrieved_documents = process_query(query)
-    retrieved_chunks = [document[0].page_content for document in retrieved_documents]
-    response = generate_response(query = query, retrieved_chunks=retrieved_chunks)
-    print(response.content)
+    # deploy_pipeline()
+    # print("Nhập câu hỏi của bạn: ")
+    # query = input()
+    # retrieved_documents = process_query(query)
+    # retrieved_chunks = [document[0].page_content for document in retrieved_documents]
+    # response = generate_response(query = query, retrieved_chunks=retrieved_chunks)
+    # print(response.content)
+    finetune_embedding(dataset_dir = "train_data.csv", output = "output")
 
 if __name__ == "__main__":
     main()
