@@ -31,7 +31,7 @@ docx2txt==0.8
 durationpy==0.9
 emoji==2.14.1
 eval_type_backport==0.2.2
-faiss==1.10.0
+faiss-gpu==1.10.0
 fastapi==0.115.11
 filelock==3.17.0
 filetype==1.2.0
