@@ -1,7 +1,6 @@
 *.pdf
 *.csv
 *.sqlite
-*.txt
 temp.*
 chroma/
 data/
