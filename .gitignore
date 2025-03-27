@@ -6,3 +6,4 @@ temp.*
 chroma/
 data/
 *.pyc
+__pycache__/
