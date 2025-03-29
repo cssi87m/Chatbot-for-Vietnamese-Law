@@ -77,23 +77,23 @@ def finetune_embedding(dataset_dir: str, output: str):
 
     # Train the model
     training_args =  SentenceTransformerTrainingArguments(
-        output_dir = output, # output directory and hugging face model ID
-        num_train_epochs=4,                         # number of epochs
-        per_device_train_batch_size=1,             # train batch size
-        gradient_accumulation_steps=16,             # for a global batch size of 512
-        per_device_eval_batch_size=2,              # evaluation batch size
-        warmup_ratio=0.1,                           # warmup ratio
-        learning_rate=2e-5,                         # learning rate, 2e-5 is a good value
-        lr_scheduler_type="cosine",                 # use constant learning rate scheduler
-        optim="adamw_torch_fused",                  # use fused adamw optimizer
-        tf32=True,                                  # use tf32 precision
-        bf16=True,                                  # use bf16 precision
-        batch_sampler=BatchSamplers.NO_DUPLICATES,  # MultipleNegativesRankingLoss benefits from no duplicate samples in a batch
-        eval_strategy="no",                      # evaluate after each epoch
-        save_strategy="epoch",                      # save after each epoch
-        logging_steps=1,                           # log every 1 steps
-        save_total_limit=3,                         # save only the last 3 models
-        # load_best_model_at_end=True,                # load the best model when training ends
+        output_dir = output, 
+        num_train_epochs=4,                         
+        per_device_train_batch_size=1,             
+        gradient_accumulation_steps=16,             
+        per_device_eval_batch_size=2,             
+        warmup_ratio=0.1,                           
+        learning_rate=2e-5,                         
+        lr_scheduler_type="cosine",                 
+        optim="adamw_torch_fused",                  
+        tf32=True,                                  
+        bf16=True,                                  
+        batch_sampler=BatchSamplers.NO_DUPLICATES,  
+        eval_strategy="no",                     
+        save_strategy="epoch",                      
+        logging_steps=1,                           
+        save_total_limit=3,                         
+        # load_best_model_at_end=True,                
     )
 
     trainer = SentenceTransformerTrainer(
@@ -109,7 +109,7 @@ def finetune_embedding(dataset_dir: str, output: str):
     print("Model saved successfully.")
 
 def main(): 
-    # deploy_pipeline()
+    deploy_pipeline()
     # print("Nhập câu hỏi của bạn: ")
     # query = input()
     # retrieved_documents = process_query(query)
@@ -126,12 +126,6 @@ def main():
 if __name__ == "__main__":
     main()
 
-# def fine_tune_model(model, dataset):
-#     """Fine-tunes the language model using a custom dataset."""
-#     model.train()
-#     for data in dataset:
-#         model.update(data)
-#     print("Model fine-tuning complete.")
 
 # def refine_retrieval_quality(user_feedback, index):
 #     """Refines the retrieval process using user feedback."""
