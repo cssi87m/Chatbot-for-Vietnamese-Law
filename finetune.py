@@ -45,6 +45,9 @@ def finetune_embedding(train_dir: str, eval_dir: str, output: str, epochs: int, 
         # load_best_model_at_end=True,                
     )
 
+    # Log out all the param
+    print(f"Training params: Epochs: {epochs}, Batch size: {batch_size}, Learning rate: {learning_rate}, Weight decay: {weight_decay}")
+
     trainer = SentenceTransformerTrainer(
         model=model,
         loss=loss,
