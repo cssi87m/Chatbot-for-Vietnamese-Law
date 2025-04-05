@@ -6,16 +6,21 @@ from sentence_transformers.training_args import BatchSamplers
 import pandas as pd
 from datasets import Dataset
 import argparse
-def finetune_embedding(dataset_dir: str, output: str):
+def finetune_embedding(train_dir: str, eval_dir: str, output: str, epochs: int, batch_size: int, learning_rate: float, weight_decay: float = 0.01):
     """
         dataset: {"question": "<question>", "context": "<relevant context to answer>"}
     """ 
-    dataset = pd.read_csv(dataset_dir)
-    dataset.rename(columns={"question": "anchor", "context": "positive"}, inplace=True)
+    train_dataset = pd.read_csv(train_dir)
+    train_dataset.rename(columns={"question": "anchor", "context": "positive"}, inplace=True)
+    train_dataset.drop(columns = ["answer", "cid"], inplace=True)
+    train_dataset = Dataset.from_pandas(train_dataset)
 
-    dataset.drop(columns = ["answer", "cid"], inplace=True)
-    dataset = Dataset.from_pandas(dataset)
 
+    # Create a dataset for evaluation
+    eval_dataset = pd.read_csv(eval_dir)
+    eval_dataset.rename(columns={"question": "anchor", "context": "positive"}, inplace=True)
+    eval_dataset.drop(columns = ["answer", "cid"], inplace=True)
+    eval_dataset = Dataset.from_pandas(eval_dataset)
     # Initialeize the loss function
     model = EMBEDDING._client
     loss = MultipleNegativesRankingLoss(model=model)
@@ -32,7 +37,7 @@ def finetune_embedding(dataset_dir: str, output: str):
         lr_scheduler_type="cosine",                 
         optim="adamw_torch_fused",                                                   
         batch_sampler=BatchSamplers.NO_DUPLICATES,  
-        eval_strategy="no",                     
+        eval_strategy="steps",                     
         save_strategy="epoch",                      
         logging_steps=1,                           
         save_total_limit=3,                         
@@ -42,7 +47,8 @@ def finetune_embedding(dataset_dir: str, output: str):
     trainer = SentenceTransformerTrainer(
         model=model,
         loss=loss,
-        train_dataset=dataset,
+        train_dataset=train_dataset,
+        eval_dataset=eval_dataset,
         args=training_args,
     )
     print("Training the model...")
@@ -53,11 +59,24 @@ def finetune_embedding(dataset_dir: str, output: str):
 
 def main(): 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--dataset_dir", type=str, default="train_data.csv")
+    parser.add_argument("--train_dir", type=str, default="train_data.csv")
+    parser.add_argument("--eval_dir", type=str, default="test_data.csv")
     parser.add_argument("--output", type=str, default="output")
+    parser.add_argument("--batch_size", type=int, default=4)
+    parser.add_argument("--num_epochs", type=int, default=4)
+    parser.add_argument("--learning_rate", type=float, default=2e-5)
+    parser.add_argument("--weight_decay", type=float, default=0.01)
 
     args = parser.parse_args()
-    finetune_embedding(args.dataset_dir, args.output)
+    finetune_embedding(
+        train_dir=args.train_dir,
+        eval_dir=args.eval_dir,
+        output=args.output,
+        epochs=args.num_epochs,
+        batch_size=args.batch_size,
+        learning_rate=args.learning_rate,
+        weight_decay=args.weight_decay
+    )
 
 if __name__ == "__main__":
     main()
