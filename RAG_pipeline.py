@@ -5,12 +5,7 @@ from langchain_community.utils.math import cosine_similarity
 from langchain.prompts import ChatPromptTemplate
 import numpy as np
 from langchain_ollama import ChatOllama
-from sentence_transformers.losses import MultipleNegativesRankingLoss
-from sentence_transformers import SentenceTransformerTrainingArguments, SentenceTransformerTrainer
-from sentence_transformers.training_args import BatchSamplers 
-import pandas as pd
-from datasets import Dataset
-import argparse
+
 from typing import List, Tuple
 from utils import * 
 
@@ -50,81 +45,10 @@ def generate_response(query: str, retrieved_chunks: List[str], chat_model = LANG
                                    "documents": retrieved_chunks})
     return response
 
-def evaluate_retrieval(retrieved_chunks, ground_truth):
-    """Evaluates the retrieval quality using similarity metrics."""
-    ground_truth_embedding = EMBEDDING.embed_documents([ground_truth])
-    retrieved_embeddings = EMBEDDING.embed_documents(retrieved_chunks)
-    scores = cosine_similarity(retrieved_embeddings, ground_truth_embedding)
-    return np.mean(scores)
 
 def deploy_pipeline():
     """Deploys the query processing and retrieval pipeline."""
     print("Pipeline deployed successfully. Ready to handle queries.")
-
-def finetune_embedding(dataset_dir: str, output: str):
-    """
-        dataset: {"question": "<question>", "context": "<relevant context to answer>"}
-    """ 
-    dataset = pd.read_csv(dataset_dir)
-    dataset.rename(columns={"question": "anchor", "context": "positive"}, inplace=True)
-
-    dataset.drop(columns = ["answer", "cid"], inplace=True)
-    dataset = Dataset.from_pandas(dataset)
-
-    # Initialeize the loss function
-    model = EMBEDDING._client
-    loss = MultipleNegativesRankingLoss(model=model)
-
-    # Train the model
-    training_args =  SentenceTransformerTrainingArguments(
-        output_dir = output, 
-        num_train_epochs=4,                         
-        per_device_train_batch_size=1,             
-        gradient_accumulation_steps=16,             
-        per_device_eval_batch_size=2,             
-        warmup_ratio=0.1,                           
-        learning_rate=2e-5,                         
-        lr_scheduler_type="cosine",                 
-        optim="adamw_torch_fused",                  
-        tf32=True,                                  
-        bf16=True,                                  
-        batch_sampler=BatchSamplers.NO_DUPLICATES,  
-        eval_strategy="no",                     
-        save_strategy="epoch",                      
-        logging_steps=1,                           
-        save_total_limit=3,                         
-        # load_best_model_at_end=True,                
-    )
-
-    trainer = SentenceTransformerTrainer(
-        model=model,
-        loss=loss,
-        train_dataset=dataset,
-        args=training_args,
-    )
-    print("Training the model...")
-    trainer.train()
-    print("Model training complete.")
-    trainer.save_model(output)
-    print("Model saved successfully.")
-
-def main(): 
-    deploy_pipeline()
-    # print("Nhập câu hỏi của bạn: ")
-    # query = input()
-    # retrieved_documents = process_query(query)
-    # retrieved_chunks = [document[0].page_content for document in retrieved_documents]
-    # response = generate_response(query = query, retrieved_chunks=retrieved_chunks)
-    # print(response.content)
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--dataset_dir", type=str, default="train_data.csv")
-    parser.add_argument("--output", type=str, default="output")
-
-    args = parser.parse_args()
-    finetune_embedding(args.dataset_dir, args.output)
-
-if __name__ == "__main__":
-    main()
 
 
 # def refine_retrieval_quality(user_feedback, index):
@@ -133,3 +57,4 @@ if __name__ == "__main__":
 #         if feedback['relevant']:
 #             index.update(feedback['doc_id'])
 #     print("Retrieval quality refined based on user feedback.")
+
