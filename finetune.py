@@ -1,7 +1,7 @@
 import pandas as pd 
 import torch
 from sentence_transformers.losses import MultipleNegativesRankingLoss
-from sentence_transformers import SentenceTransformerTrainingArguments, SentenceTransformerTrainer
+from sentence_transformers import SentenceTransformerTrainingArguments, SentenceTransformerTrainer, SentenceTransformer
 from sentence_transformers.training_args import BatchSamplers 
 import pandas as pd
 from datasets import Dataset
@@ -24,7 +24,18 @@ def finetune_embedding(train_dir: str, eval_dir: str, model_path: str, output: s
     # Initialeize the loss function
 
     # Load the model
-    model = torch.load(model_path, map_location=torch.device(device), weights_only=False)
+    if ('.pt' in model_path) or ('.bin' in model_path):
+        model = torch.load(model_path, map_location=torch.device(device))
+    
+    if ('.safetensors' in model_path):
+        from safetensors import safe_open
+        tensors = {}
+        with safe_open(model_path, framework="pt", device=device) as f:
+            for k in f.keys():
+                tensors[k] = f.get_tensor(k)
+        model = SentenceTransformer(model_path)
+        model.load_state_dict(tensors, strict = False)
+
     loss = MultipleNegativesRankingLoss(model=model)
 
     # Train the model
@@ -34,6 +45,7 @@ def finetune_embedding(train_dir: str, eval_dir: str, model_path: str, output: s
         per_device_train_batch_size=batch_size,   
         learning_rate=learning_rate,                         
         weight_decay=weight_decay,
+        torch_empty_cache_steps = 2,
         gradient_accumulation_steps=2,             
         per_device_eval_batch_size=2,             
         warmup_ratio=0.1,                           

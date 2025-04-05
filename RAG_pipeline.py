@@ -1,7 +1,5 @@
 from typing import List
 from langchain_core.documents.base import Document
-from langchain_community.vectorstores.chroma import Chroma
-from langchain_community.utils.math import cosine_similarity
 from langchain.prompts import ChatPromptTemplate
 import numpy as np
 from langchain_ollama import ChatOllama
@@ -9,10 +7,8 @@ from langchain_ollama import ChatOllama
 from typing import List, Tuple
 from utils import * 
 
-VECTOR_DB = Chroma(
-    persist_directory=CHROMA_PATH,
-    embedding_function=EMBEDDING
-)
+
+
 
 PROMPT_TEMPLATE = """
 Bạn là một chuyên gia về pháp luật, đặc biệt trong lĩnh vực luật an toàn thông tin và an ninh mạng. Dựa trên các tài liệu pháp lý được cung cấp dưới đây, 
