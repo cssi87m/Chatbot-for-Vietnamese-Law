@@ -6,7 +6,7 @@ from sentence_transformers.training_args import BatchSamplers
 import pandas as pd
 from datasets import Dataset
 import argparse
-def finetune_embedding(train_dir: str, eval_dir: str, output: str, epochs: int, batch_size: int, learning_rate: float, weight_decay: float = 0.01):
+def finetune_embedding(train_dir: str, eval_dir: str, output: str, epochs: int, batch_size: int, learning_rate: float, weight_decay: float):
     """
         dataset: {"question": "<question>", "context": "<relevant context to answer>"}
     """ 
@@ -32,7 +32,7 @@ def finetune_embedding(train_dir: str, eval_dir: str, output: str, epochs: int, 
         per_device_train_batch_size=batch_size,   
         learning_rate=learning_rate,                         
         weight_decay=weight_decay,
-        gradient_accumulation_steps=16,             
+        gradient_accumulation_steps=2,             
         per_device_eval_batch_size=2,             
         warmup_ratio=0.1,                           
         lr_scheduler_type="cosine",                 
