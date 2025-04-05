@@ -6,3 +6,4 @@ chroma/
 data/
 *.pyc
 __pycache__/
+/checkpoint

@@ -1,12 +1,12 @@
 import pandas as pd 
-from utils import *
+import torch
 from sentence_transformers.losses import MultipleNegativesRankingLoss
 from sentence_transformers import SentenceTransformerTrainingArguments, SentenceTransformerTrainer
 from sentence_transformers.training_args import BatchSamplers 
 import pandas as pd
 from datasets import Dataset
 import argparse
-def finetune_embedding(train_dir: str, eval_dir: str, output: str, epochs: int, batch_size: int, learning_rate: float, weight_decay: float):
+def finetune_embedding(train_dir: str, eval_dir: str, model_path: str, output: str, epochs: int, batch_size: int, learning_rate: float, weight_decay: float, device: str):
     """
         dataset: {"question": "<question>", "context": "<relevant context to answer>"}
     """ 
@@ -22,7 +22,9 @@ def finetune_embedding(train_dir: str, eval_dir: str, output: str, epochs: int, 
     eval_dataset.drop(columns = ["answer", "cid"], inplace=True)
     eval_dataset = Dataset.from_pandas(eval_dataset)
     # Initialeize the loss function
-    model = EMBEDDING._client
+
+    # Load the model
+    model = torch.load(model_path, map_location=torch.device(device), weights_only=False)
     loss = MultipleNegativesRankingLoss(model=model)
 
     # Train the model
@@ -70,6 +72,8 @@ def main():
     parser.add_argument("--num_epochs", type=int, default=4)
     parser.add_argument("--learning_rate", type=float, default=2e-5)
     parser.add_argument("--weight_decay", type=float, default=0.01)
+    parser.add_argument("--model_path", type=str, default="checkpoint/embedding_model.pt")
+    parser.add_argument("--device", type=str, default="cuda" if torch.cuda.is_available() else "cpu")
 
     args = parser.parse_args()
     finetune_embedding(
@@ -79,7 +83,9 @@ def main():
         epochs=args.num_epochs,
         batch_size=args.batch_size,
         learning_rate=args.learning_rate,
-        weight_decay=args.weight_decay
+        weight_decay=args.weight_decay,
+        model_path=args.model_path,
+        device=args.device
     )
 
 if __name__ == "__main__":
