@@ -33,7 +33,7 @@ def finetune_embedding(train_dir: str, eval_dir: str, model_path: str, output: s
         with safe_open(model_path, framework="pt", device=device) as f:
             for k in f.keys():
                 tensors[k] = f.get_tensor(k)
-        model = SentenceTransformer(model_path)
+        model = SentenceTransformer("BAAI/bge-m3")
         model.load_state_dict(tensors, strict = False)
 
     loss = MultipleNegativesRankingLoss(model=model)
