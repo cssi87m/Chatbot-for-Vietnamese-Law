@@ -53,10 +53,8 @@ def finetune_embedding(train_dir: str, eval_dir: str, model_path: str, output: s
         optim="adamw_torch_fused",                                                   
         batch_sampler=BatchSamplers.NO_DUPLICATES,  
         eval_strategy="steps",                     
-        save_strategy="epoch",                      
+        save_strategy="no",                      
         logging_steps=1,                           
-        save_total_limit=3,                         
-        # load_best_model_at_end=True,                
     )
 
     # Log out all the param
