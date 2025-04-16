@@ -1,13 +1,10 @@
 from typing import List
 from langchain_core.documents.base import Document
 from langchain.prompts import ChatPromptTemplate
-import numpy as np
 from langchain_ollama import ChatOllama
 
 from typing import List, Tuple
 from utils import * 
-
-
 
 
 PROMPT_TEMPLATE = """
@@ -21,6 +18,7 @@ Câu hỏi: {question}
 Câu trả lời của bạn phải nêu rõ các quy định pháp luật liên quan, bao gồm tên luật hoặc nghị định, số điều luật, 
 và nội dung trích dẫn phù hợp để làm cơ sở pháp lý cho lập luận của bạn. 
 Hãy trình bày một cách logic, mạch lạc và dễ hiểu, đảm bảo thông tin có tính chính xác và phù hợp với ngữ cảnh câu hỏi.
+LƯU Ý: Chỉ được trả lời các câu hỏi liên quan đến pháp luật, không được đưa ra ý kiến cá nhân hay thông tin không có căn cứ pháp lý.
 """
 
 LANGUAGE_MODEL = ChatOllama(
@@ -46,11 +44,4 @@ def deploy_pipeline():
     """Deploys the query processing and retrieval pipeline."""
     print("Pipeline deployed successfully. Ready to handle queries.")
 
-
-# def refine_retrieval_quality(user_feedback, index):
-#     """Refines the retrieval process using user feedback."""
-#     for feedback in user_feedback:
-#         if feedback['relevant']:
-#             index.update(feedback['doc_id'])
-#     print("Retrieval quality refined based on user feedback.")
 

@@ -6,21 +6,7 @@ from langchain_core.documents.base import Document
 from langchain_community.vectorstores.chroma import Chroma
 from utils import CHROMA_PATH, DATA_PATH, EMBEDDING, VECTORDATABASE_PATH
 
-def main():
 
-    # Check if the database should be cleared (using the --clear flag).
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--reset", action="store_true", help="Reset the database.")
-    parser.add_argument("--data_path", type=str, default=DATA_PATH, help="Path to the data file.")
-    args = parser.parse_args()
-    if args.reset:
-        print("Clearing Database")
-        clear_database()
-
-    # Create (or update) the data store.
-    documents = load_documents(args.data_path)
-    chunks = create_chunks(documents)
-    add_to_chroma(chunks)
 
 
 def load_documents(data_path=DATA_PATH):
@@ -102,6 +88,20 @@ def clear_database():
     if os.path.exists(CHROMA_PATH):
         shutil.rmtree(CHROMA_PATH)
 
+def main():
+    # Check if the database should be cleared (using the --clear flag).
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--reset", action="store_true", help="Reset the database.")
+    parser.add_argument("--data_path", type=str, default=DATA_PATH, help="Path to the data file.")
+    args = parser.parse_args()
+    if args.reset:
+        print("Clearing Database")
+        clear_database()
+
+    # Create (or update) the data store.
+    documents = load_documents(args.data_path)
+    chunks = create_chunks(documents)
+    add_to_chroma(chunks)
 
 if __name__ == "__main__":
     main()
