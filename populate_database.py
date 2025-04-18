@@ -5,6 +5,7 @@ from langchain_text_splitters.character import RecursiveCharacterTextSplitter
 from langchain_core.documents.base import Document
 from langchain_community.vectorstores.chroma import Chroma
 from utils import CHROMA_PATH, DATA_PATH, EMBEDDING, VECTORDATABASE_PATH
+import pandas as pd
 
 
 
@@ -20,7 +21,7 @@ def load_documents(data_path=DATA_PATH):
     return data
 
 
-def create_chunks(documents: list[Document]):
+def create_chunks(documents: list[str]):
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=1000,
         chunk_overlap=20,
@@ -39,6 +40,11 @@ def add_to_chroma(chunks: list[Document]):
 
     # Calculate Page IDs.
     chunks_with_ids = calculate_chunk_ids(chunks)
+
+    # Add chunk content and cid in chunks.csv 
+    chunks_df = pd.DataFrame([chunk.page_content for chunk in chunks_with_ids], columns=["content"])
+    chunks_df["cid"] = [chunk.metadata["id"] for chunk in chunks_with_ids]
+    chunks_df.to_csv("chunks.csv", index=False)
 
     # Add or Update the documents.
     existing_items = db.get(include=[])  # IDs are always included by default
