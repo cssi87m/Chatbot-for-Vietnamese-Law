@@ -1,34 +1,36 @@
 import argparse
 import os
 import shutil
+from langchain_community.document_loaders import TextLoader, DirectoryLoader
 from langchain_text_splitters.character import RecursiveCharacterTextSplitter
 from langchain_core.documents.base import Document
 from langchain_community.vectorstores.chroma import Chroma
-from utils import CHROMA_PATH, DATA_PATH, EMBEDDING, VECTORDATABASE_PATH
+from utils import DATA_PATH, EMBEDDING, VECTORDATABASE_PATH
 import pandas as pd
 
 
 
 
-def load_documents(data_path=DATA_PATH):
+def load_documents(data_path: str):
     """
     Load the documents from the data file. Here, the data file is a text file. Data should be preprocess before loading in this text file
     """
-    if not data_path.endswith(".txt"):
-        raise ValueError("Data path must be a text file.")
-    with open(data_path, 'r') as f:
-        data = f.read()
-    return data
+    loader = DirectoryLoader(
+            data_path,
+            glob="**/*.txt",
+            loader_cls=TextLoader
+        )
+    documents = loader.load()
+    print(f"Loaded {len(documents)} documents")
+    return documents
 
 
-def create_chunks(documents: list[str]):
+def create_chunks(documents: list[Document]):
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=1000,
-        chunk_overlap=20,
-        length_function=len,
-        is_separator_regex=False,
+        chunk_overlap=200,
     )
-    chunks = text_splitter.create_documents([documents])
+    chunks = text_splitter.split_documents(documents)
     return chunks
 
 
@@ -66,35 +68,40 @@ def add_to_chroma(chunks: list[Document]):
         print("No new documents to add")
 
 def calculate_chunk_ids(chunks):
-    last_page_id = None
-    current_chunk_index = 0
-
+    """
+    Generate unique IDs for each chunk by combining source, page, and chunk index.
+    """
+    # Dictionary to keep track of chunk indices for each page
+    page_chunk_indices = {}
+    
     for chunk in chunks:
-        source = chunk.metadata.get("source")
-        page = chunk.metadata.get("page")
+        source = chunk.metadata.get("source", "unknown")
+        page = chunk.metadata.get("page", "0")
         current_page_id = f"{source}:{page}"
-
-        # If the page ID is the same as the last one, increment the index.
-        if current_page_id == last_page_id:
-            current_chunk_index += 1
+        
+        # Initialize or increment the chunk index for this page
+        if current_page_id not in page_chunk_indices:
+            page_chunk_indices[current_page_id] = 0
         else:
-            current_chunk_index = 0
-
-        # Calculate the chunk ID.
-        chunk_id = f"{current_chunk_index}"
-        last_page_id = current_page_id
-
-        # Add it to the page meta-data.
+            page_chunk_indices[current_page_id] += 1
+        
+        # Create a unique ID that includes source, page, and chunk index
+        # Removing the file path and replacing special characters to make clean IDs
+        clean_source = os.path.basename(source).replace(".", "_").replace(" ", "_")
+        chunk_id = f"{clean_source}_p{page}_c{page_chunk_indices[current_page_id]}"
+        
+        # Add the unique ID to the chunk's metadata
         chunk.metadata["id"] = chunk_id
-
     return chunks
 
 
 def clear_database():
-    if os.path.exists(CHROMA_PATH):
-        shutil.rmtree(CHROMA_PATH)
+    if os.path.exists(VECTORDATABASE_PATH):
+        shutil.rmtree(VECTORDATABASE_PATH)
 
 def main():
+    # documents = load_documents()
+    # print(documents[2].page_content)
     # Check if the database should be cleared (using the --clear flag).
     parser = argparse.ArgumentParser()
     parser.add_argument("--reset", action="store_true", help="Reset the database.")

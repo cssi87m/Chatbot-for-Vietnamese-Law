@@ -1,0 +1,123 @@
+Thiết kế trường hợp kiểm thử cho chatbot pháp lý chuyên về luật an ninh mạng
+    1. Câu hỏi cung cấp thông tin cơ bản
+    Mục đích: Kiểm tra khả năng cung cấp kiến thức nền tảng chính xác về luật an ninh mạng.
+    Định dạng câu hỏi:
+
+    "Luật An ninh mạng quy định những nội dung gì?"
+    "Các hành vi bị nghiêm cấm trong Luật An toàn thông tin mạng là gì?"
+    "Phạm vi điều chỉnh của Luật An ninh mạng là gì?"
+
+    Tiêu chí đánh giá:
+
+    Cung cấp thông tin chính xác theo điều khoản luật hiện hành
+    Trích dẫn cụ thể (điều, khoản, mục) từ văn bản luật
+    Phân biệt rõ giữa Luật An ninh mạng và Luật An toàn thông tin mạng
+    Không chứa thông tin sai lệch hoặc lỗi thời
+
+    2. Câu hỏi tình huống cụ thể
+    Mục đích: Kiểm tra khả năng áp dụng luật vào tình huống thực tế.
+    Định dạng câu hỏi:
+
+    "Doanh nghiệp X lưu trữ dữ liệu người dùng tại nước ngoài có vi phạm Điều 26 Luật An ninh mạng không?"
+    "Nếu hệ thống mạng của tôi bị xâm nhập và dữ liệu bị đánh cắp, tôi cần thực hiện những bước nào theo quy định pháp luật?"
+    "Trường hợp nào doanh nghiệp cần xây dựng phương án ứng phó sự cố an toàn thông tin mạng?"
+
+    Tiêu chí đánh giá:
+
+    Phân tích tình huống dựa trên các điều khoản cụ thể
+    Cung cấp hướng dẫn hành động phù hợp với quy định pháp luật
+    Chỉ ra các nghĩa vụ pháp lý liên quan
+    Trích dẫn chính xác văn bản pháp luật liên quan
+    Nêu rõ các trường hợp ngoại lệ (nếu có)
+
+    3. Câu hỏi về chế tài, xử phạt
+    Mục đích: Kiểm tra khả năng cung cấp thông tin chính xác về hậu quả pháp lý khi vi phạm.
+    Định dạng câu hỏi:
+
+    "Mức phạt cho hành vi phát tán mã độc gây hại cho hệ thống thông tin là bao nhiêu?"
+    "Doanh nghiệp không tuân thủ quy định về lưu trữ dữ liệu người dùng Việt Nam sẽ bị xử phạt như thế nào?"
+    "Hình phạt cho tội phạm tấn công mạng vào hệ thống thông tin trọng yếu quốc gia?"
+
+    Tiêu chí đánh giá:
+
+    Cung cấp mức phạt tiền chính xác
+    Phân biệt rõ xử phạt hành chính và hình sự
+    Trích dẫn cụ thể từ Nghị định xử phạt và Bộ luật Hình sự
+    Nêu các yếu tố ảnh hưởng đến mức xử phạt
+
+    4. Câu hỏi về trách nhiệm và nghĩa vụ
+    Mục đích: Kiểm tra khả năng xác định trách nhiệm pháp lý của các bên liên quan.
+    Định dạng câu hỏi:
+
+    "Doanh nghiệp cung cấp dịch vụ mạng xã hội có trách nhiệm gì khi người dùng đăng nội dung vi phạm pháp luật?"
+    "Các tổ chức, cá nhân tham gia hoạt động trên không gian mạng có nghĩa vụ gì theo Luật An ninh mạng?"
+    "Ai chịu trách nhiệm khi xảy ra sự cố an toàn thông tin mạng tại cơ quan nhà nước?"
+
+    Tiêu chí đánh giá:
+
+    Xác định đúng chủ thể chịu trách nhiệm
+    Liệt kê đầy đủ các nghĩa vụ theo quy định
+    Phân định rõ trách nhiệm của các bên liên quan
+    Trích dẫn điều khoản cụ thể từ văn bản pháp luật
+
+    5. Câu hỏi phân biệt và làm rõ khái niệm
+    Mục đích: Kiểm tra khả năng giải thích và phân biệt các thuật ngữ pháp lý.
+    Định dạng câu hỏi:
+
+    "Sự khác biệt giữa an ninh mạng và an toàn thông tin mạng theo quy định pháp luật Việt Nam?"
+    "Thế nào là 'hệ thống thông tin trọng yếu quốc gia' theo Luật An toàn thông tin mạng?"
+    "Phân biệt 'thông tin cá nhân' và 'dữ liệu cá nhân' theo quy định pháp luật Việt Nam?"
+
+    Tiêu chí đánh giá:
+
+    Giải thích rõ ràng, chính xác các khái niệm pháp lý
+    So sánh, phân biệt các thuật ngữ tương đồng
+    Trích dẫn định nghĩa từ văn bản pháp luật
+    Cung cấp ví dụ minh họa phù hợp (nếu cần)
+
+    6. Câu hỏi về quy trình, thủ tục
+    Mục đích: Kiểm tra khả năng hướng dẫn các quy trình tuân thủ pháp luật.
+    Định dạng câu hỏi:
+
+    "Quy trình thông báo và phối hợp khi xảy ra sự cố an toàn thông tin mạng nghiêm trọng là gì?"
+    "Làm thế nào để đăng ký hoạt động kinh doanh dịch vụ an toàn thông tin mạng?"
+    "Thủ tục xin cấp phép cung cấp dịch vụ mạng xã hội tại Việt Nam?"
+
+    Tiêu chí đánh giá:
+
+    Liệt kê đầy đủ các bước trong quy trình
+    Chỉ rõ cơ quan có thẩm quyền
+    Nêu chính xác thời hạn của từng bước (nếu có)
+    Trích dẫn văn bản pháp lý quy định quy trình
+    Cung cấp thông tin về biểu mẫu liên quan (nếu có)
+
+    7. Câu hỏi liên quan đến cập nhật pháp luật
+    Mục đích: Kiểm tra khả năng cung cấp thông tin về sự thay đổi, cập nhật của pháp luật.
+    Định dạng câu hỏi:
+
+    "Những thay đổi quan trọng nào trong Nghị định hướng dẫn Luật An ninh mạng so với dự thảo ban đầu?"
+    "Các quy định mới nhất về bảo vệ dữ liệu cá nhân trong lĩnh vực an ninh mạng?"
+    "Nghị định 53/2022/NĐ-CP có điểm gì khác so với các quy định trước đó về bảo vệ dữ liệu cá nhân?"
+
+    Tiêu chí đánh giá:
+
+    Cung cấp thông tin cập nhật và chính xác
+    So sánh rõ ràng giữa quy định cũ và mới
+    Nêu rõ thời điểm có hiệu lực của các quy định mới
+    Trích dẫn chính xác các văn bản pháp luật liên quan
+
+    8. Câu hỏi giải thích điều khoản phức tạp
+    Mục đích: Kiểm tra khả năng diễn giải các điều khoản pháp lý phức tạp thành ngôn ngữ dễ hiểu.
+    Định dạng câu hỏi:
+
+    "Điều 26 Luật An ninh mạng về lưu trữ dữ liệu tại Việt Nam có ý nghĩa gì trong thực tiễn?"
+    "Giải thích ý nghĩa của 'tấn công mạng có chủ đích' theo Điều 18 Luật An toàn thông tin mạng?"
+    "Làm rõ khái niệm 'bảo đảm an toàn hệ thống thông tin theo cấp độ' trong Nghị định 85/2016/NĐ-CP?"
+
+    Tiêu chí đánh giá:
+
+    Giải thích chính xác nội dung điều khoản
+    Sử dụng ngôn ngữ dễ hiểu cho người không chuyên về pháp luật
+    Giữ đúng ý nghĩa pháp lý của điều khoản
+    Cung cấp ví dụ minh họa phù hợp
+    Trích dẫn chính xác điều khoản gốc

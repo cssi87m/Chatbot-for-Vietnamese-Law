@@ -79,6 +79,8 @@ def verify_webhook(
 
 # POST handler to receive messages
 @app.post("/webhook/")
+# @app.post("/webhook")
+# @app.post("/webhook/")
 async def webhook(request: Request):
     print("Webhook messaging step.")
     chat_data = await request.json()
@@ -87,19 +89,29 @@ async def webhook(request: Request):
         for page_body in chat_data.get("entry", []):
             for message_obj in page_body.get("messaging", []):
                 if "message" in message_obj:
-                    message = get_message(message_obj)
-                    response = inference(query=message).content
-                    if isinstance(response, str):
+                    if message_obj["message"].get("is_echo"):
+                        continue
+                    try:
+                        message = get_message(message_obj)
+                        response = inference(query=message).content
+
+                        if isinstance(response, str):
+                            await send_message(
+                                recipient_id=message_obj["sender"]["id"],
+                                message=response
+                            )
+                        else:
+                            await send_message(
+                                recipient_id=message_obj["sender"]["id"],
+                                message="Sorry, I couldn't process your request."
+                            )
+                    except Exception as e:
+                        print(f"Error while processing message: {e}")
                         await send_message(
                             recipient_id=message_obj["sender"]["id"],
-                            message=response
+                            message="Oops! Something went wrong."
                         )
-                    else:
-                        await send_message(
-                            recipient_id=message_obj["sender"]["id"],
-                            message="Sorry, I couldn't process your request."
-                        )
-        return {"status": "ok"}
+        return {"status": "ok"}  # ✅ ensure this is always returned
     else:
         raise HTTPException(status_code=400, detail="Not a page subscription")
 
@@ -110,19 +122,22 @@ def get_message(message_obj):
 
 # Send a reply message
 async def send_message(recipient_id: str, message: str):
-    message_data = {
-        "recipient": {"id": recipient_id},
-        "message": {"text": message}
-    }
+    MAX_MSG_LENGTH = 2000
+    message_chunks = [message[i:i + MAX_MSG_LENGTH] for i in range(0, len(message), MAX_MSG_LENGTH)]
 
     async with httpx.AsyncClient() as client:
-        response = await client.post(
-            url="https://graph.facebook.com/v3.2/me/messages",
-            params={"access_token": FB_ACCESS_TOKEN},
-            json=message_data
-        )
-
-        if response.status_code == 200:
-            print("Message sent successfully.")
-        else:
-            print(f"Message failed - {response.status_code}: {response.text}")
+        for chunk in message_chunks:
+            message_data = {
+                "recipient": {"id": recipient_id},
+                "message": {"text": chunk}
+            }
+            response = await client.post(
+                url="https://graph.facebook.com/v3.2/me/messages",
+                params={"access_token": FB_ACCESS_TOKEN},
+                json=message_data
+            )
+            if response.status_code == 200:
+                print("Message sent successfully.")
+            else:
+                print(f"Message failed - {response.status_code}: {response.text}")
+                break

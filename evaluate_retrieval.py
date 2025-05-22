@@ -4,6 +4,8 @@ from tqdm.auto import tqdm
 from safetensors import safe_open
 import argparse
 
+from utils import EMBEDDING
+
 def evaluate_retrieval(retrieved_chunks, ground_truth):
     """Evaluates the retrieval quality."""
     for chunk in retrieved_chunks:
@@ -16,7 +18,6 @@ def main():
     parser = argparse.ArgumentParser(description="Evaluate the retrieval quality.")
     parser.add_argument("--model_path", type=str, help="The model path", default="checkpoint-145.safetensors")
     args = parser.parse_args()
-
 
     # Load embedding model 
     tensors = {}

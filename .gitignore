@@ -2,9 +2,12 @@
 *.csv
 *.sqlite
 *temp*.*
+*.zip
 chroma/
 data/
+logs/
 *.pyc
 __pycache__/
 /checkpoint
 .env
+eval/
