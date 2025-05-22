@@ -12,20 +12,22 @@ import argparse
 
 def evaluate_chatbot_normal_RAG(test_dataset_dir: str = "data/testing_data/chatbot_test_data.csv", model_path: str = "checkpoint/embedding_model.pt"):
     """Evaluate the chatbot using normal RAG."""
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}")
     # Load the test dataset
     test_data = pd.read_csv(test_dataset_dir)
     questions, answers = test_data['question'], test_data['answer']
     if model_path.endswith(".safetensors"):
         # Load the model
         tensors = {}
-        with safe_open(model_path, framework="pt", device="cuda") as f:
+        with safe_open(model_path, framework="pt", device=device) as f:
             for k in f.keys():
                 tensors[k] = f.get_tensor(k)
         
         EMBEDDING._client.load_state_dict(tensors, strcict=False)
     else: 
         # Load the model
-        tensors = torch.load(model_path, map_location="cuda", weights_only=False)
+        tensors = torch.load(model_path, map_location=device, weights_only=False)
         EMBEDDING._client = tensors
     print("Load checkpoint successfully.")
     loop = tqdm(range(len(test_data)))
