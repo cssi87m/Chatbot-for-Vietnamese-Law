@@ -7,9 +7,10 @@ from RAG_pipeline import *
 from infer import inference
 from utils import EMBEDDING
 from expert_LLM_evaluate import expert_evaluate
+import argparse
 # from GraphRAG import *
 
-def evaluate_chatbot_normal_RAG(test_dataset_dir: str, model_path: str):
+def evaluate_chatbot_normal_RAG(test_dataset_dir: str = "data/testing_data/chatbot_test_data.csv", model_path: str = "checkpoint/embedding_model.pt"):
     """Evaluate the chatbot using normal RAG."""
     # Load the test dataset
     test_data = pd.read_csv(test_dataset_dir)
@@ -17,14 +18,14 @@ def evaluate_chatbot_normal_RAG(test_dataset_dir: str, model_path: str):
     if model_path.endswith(".safetensors"):
         # Load the model
         tensors = {}
-        with safe_open(model_path, framework="pt", device="cpu") as f:
+        with safe_open(model_path, framework="pt", device="cuda") as f:
             for k in f.keys():
                 tensors[k] = f.get_tensor(k)
         
         EMBEDDING._client.load_state_dict(tensors, strcict=False)
     else: 
         # Load the model
-        tensors = torch.load(model_path, map_location="cpu", weights_only=False)
+        tensors = torch.load(model_path, map_location="cuda", weights_only=False)
         EMBEDDING._client = tensors
     print("Load checkpoint successfully.")
     loop = tqdm(range(len(test_data)))
@@ -55,7 +56,11 @@ def evaluate_chatbot_normal_RAG(test_dataset_dir: str, model_path: str):
     # print("Evaluation results saved to evaluation_results.csv")
     
 def main(): 
-    evaluate_chatbot_normal_RAG("data/testing_data/chatbot_test_data.csv", "checkpoint/embedding_model.pt")
+    parser = argparse.ArgumentParser(description="Evaluate the chatbot using normal RAG.")
+    parser.add_argument("--test_dataset_dir", type=str, default="data/testing_data/chatbot_test_data.csv", help="Path to the test dataset.")
+    parser.add_argument("--model_path", type=str, default="checkpoint/embedding_model.pt", help="Path to the model checkpoint.")
+    args = parser.parse_args()
+    evaluate_chatbot_normal_RAG(args.test_dataset_dir, args.model_path)
 
 if __name__ == "__main__":
     main()
