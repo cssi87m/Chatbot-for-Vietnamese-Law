@@ -9,17 +9,6 @@ import re
 import os 
 
 from langchain_huggingface import HuggingFaceEndpoint, ChatHuggingFace
-
-# os.environ["HUGGINGFACE_API_KEY"] = "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"
-# llm = HuggingFaceEndpoint(
-#     repo_id="google/flan-t5-xxl",
-#     task="text2text-generation",
-#     max_new_tokens=512,
-#     do_sample=False,
-#     repetition_penalty=1.03,
-# )
-
-# EVAL_MODEL = ChatHuggingFace(llm=llm, verbose=True, huggingfacehub_api_token=os.environ["HUGGINGFACE_API_KEY"])
 EVAL_MODEL = ChatOllama(
     model = "deepseek-r1:14b",
     num_predict = -1)
