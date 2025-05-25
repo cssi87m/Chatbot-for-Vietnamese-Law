@@ -12,11 +12,30 @@ def inference(query: str) -> BaseMessage:
     return response
 
 def main(): 
-    deploy_pipeline()
-    print("Nhập câu hỏi của bạn: ")
-    query = input()
-    response = inference(query)
-    print(response)
+    # deploy_pipeline()
+    # print("Nhập câu hỏi của bạn: ")
+    # query = input()
+    # response = inference(query)
+    # print(response)
+    from tqdm.auto import tqdm
+    import pandas as pd
+
+    result = {
+        "question": [],
+        "answer": []
+    }
+    with open("data/testing_data/test_data.txt", "r", encoding="utf-8") as f:
+        questions = f.readlines()
+        for i in tqdm(range(len(questions))):
+            question = questions[i]
+            print(f"Evaluating question {i+1}: {question}")
+            response = inference(question).content
+            print(response)
+            result["question"].append(question)
+            result["answer"].append(response)
+        result_df = pd.DataFrame(result)
+        result_df.to_csv("data/testing_data/temp.csv", index=False)
+        print("Evaluation results saved to data/testing_data/temp.csv")
 
 if __name__ == "__main__":
     main()

@@ -4,10 +4,10 @@ from langchain.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
 
 from typing import List, Tuple
-from utils import RAG_CHAIN_PROMPT, VECTOR_DB
+from utils import RAG_CHAIN_PROMPT, VECTOR_DB, RAG_CHAIN_PROMPT_DEBUG
 
 LANGUAGE_MODEL = ChatOllama(
-    model = "llama3.2",
+    model = "llama3.1:8b",
     num_predict = -1,
 )
 
@@ -18,7 +18,7 @@ def process_query(query: str, top_k=20) -> List[Tuple[Document, float]]:
 
 def generate_response(query: str, retrieved_chunks: List[str], chat_model = LANGUAGE_MODEL):
     """Generates a response based on retrieved document chunks."""  
-    label_prompt = ChatPromptTemplate.from_template(RAG_CHAIN_PROMPT, stream = False)
+    label_prompt = ChatPromptTemplate.from_template(RAG_CHAIN_PROMPT_DEBUG, stream = False)
     label_chain = label_prompt | chat_model
     response = label_chain.invoke({"question": query,
                                    "documents": retrieved_chunks})
