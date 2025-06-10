@@ -31,7 +31,7 @@ def create_chunks(documents: list[Document]):
         chunk_overlap=200,
     )
     chunks = text_splitter.split_documents(documents)
-    return chunks
+    return chunks 
 
 
 def add_to_chroma(chunks: list[Document]):
