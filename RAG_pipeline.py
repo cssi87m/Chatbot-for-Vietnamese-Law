@@ -4,7 +4,7 @@ from langchain.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
 
 from typing import List, Tuple
-from utils import RAG_CHAIN_PROMPT, VECTOR_DB, RAG_CHAIN_PROMPT_DEBUG
+from utils import VECTOR_DB, RAG_CHAIN_PROMPT_DEBUG
 
 LANGUAGE_MODEL = ChatOllama(
     model = "llama3.1:8b",

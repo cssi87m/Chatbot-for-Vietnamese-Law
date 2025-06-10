@@ -1,6 +1,13 @@
 import torch
 from langchain_huggingface.embeddings.huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores.chroma import Chroma
+import os
+from huggingface_hub import login
+
+# Ensure the HuggingFace Hub token is set in the environment variables
+os.environ["HUGGINGFACE_HUB_TOKEN"] = "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"
+token = os.getenv("HUGGINGFACE_HUB_TOKEN")
+login(token=token)
 
 
 # Set a fixed random seed
@@ -11,6 +18,7 @@ CHROMA_PATH = 'chroma'
 DATA_PATH = 'data/corpus'
 VECTORDATABASE_PATH = 'chroma'
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+
 
 # HuggingFace Embeddings with fixed seed
 EMBEDDING = HuggingFaceEmbeddings(
@@ -421,323 +429,65 @@ Từ các quy định pháp luật nêu trên, có thể kết luận rằng [k�
 
 Hãy trả lời câu hỏi dựa trên các hướng dẫn trên."""
 
-RAG_CHAIN_PROMPT = """
-
-Bạn là một chuyên gia về pháp luật Việt Nam, đặc biệt trong lĩnh vực luật an toàn thông tin và an ninh mạng. Nhiệm vụ của bạn là trả lời câu hỏi dựa trên các tài liệu pháp luật được cung cấp.
-
-### Các tài liệu pháp luật:
-```
-{documents}
-```
-### Câu hỏi:
-```
-{question}
-```
-
-## HƯỚNG DẪN TRẢ LỜI
-Đây là các bước bạn sẽ thực hiện để trả lời câu hỏi một cách chính xác và đầy đủ nhất:
-1. **Phân tích câu hỏi và bối cảnh**:
-   - Xác định yêu cầu chính của câu hỏi
-   - Xác định các thực thể pháp lý liên quan
-   - Tìm các quy định pháp luật phù hợp từ bối cảnh được cung cấp
-
-2. **Cấu trúc câu trả lời**:
-   - **Phần mở đầu**: Tóm tắt ngắn gọn câu hỏi và phạm vi pháp lý liên quan
-   - **Phần nội dung chính**: Phân tích chi tiết với dẫn chiếu pháp luật cụ thể
-   - **Phần kết luận**: Tóm tắt câu trả lời và khuyến nghị (nếu phù hợp)
-
-3. **Yêu cầu về dẫn chiếu pháp luật**:
-   - Mỗi lập luận cần có căn cứ pháp lý cụ thể
-   - Trích dẫn phải bao gồm: Tên văn bản pháp luật, số hiệu, điều/khoản/mục cụ thể
-   - Khi trích dẫn nội dung, sử dụng dấu ngoặc kép và chỉ rõ nguồn
-
-4. **Giới hạn phạm vi câu trả lời**:
-   - Chỉ trả lời dựa trên thông tin có trong bối cảnh được cung cấp
-   - Nếu không tìm thấy thông tin đầy đủ, hãy nêu rõ "Dựa trên thông tin được cung cấp, tôi không thể trả lời đầy đủ câu hỏi này"
-   - Không đưa ra ý kiến cá nhân hoặc diễn giải vượt quá phạm vi pháp luật được cung cấp
-
-5. **Định dạng câu trả lời**:
-   - Sử dụng ngôn ngữ chuyên môn pháp lý nhưng dễ hiểu
-   - Sắp xếp ý theo thứ tự logic
-   - Phân đoạn rõ ràng và sử dụng các tiêu đề phụ khi cần thiết
-   - Sử dụng định dạng in đậm cho tên văn bản pháp luật và số điều khoản
-
-## MẪU CÂU TRẢ LỜI
-
-Dưới đây là mẫu câu trả lời phù hợp:
-
----
-
-
-Dựa trên các quy định pháp luật hiện hành về an toàn thông tin và an ninh mạng, tôi xin trả lời như sau:
-
-#### I. Cơ sở pháp lý
-
-Theo **[Tên văn bản pháp luật] số [số hiệu]**, tại Điều [số điều], khoản [số khoản] quy định:
-
-> "[Trích dẫn nội dung điều khoản]"
-
-Ngoài ra, **[Tên văn bản pháp luật khác]** cũng có quy định liên quan tại Điều [số điều]:
-
-> "[Trích dẫn nội dung]"
-
-#### II. Phân tích áp dụng
-
-Áp dụng các quy định trên vào trường hợp của câu hỏi, có thể thấy rằng:
-
-1. [Phân tích điểm thứ nhất]
-2. [Phân tích điểm thứ hai]
-3. [Phân tích điểm thứ ba]
-
-#### III. Kết luận
-
-Từ các quy định pháp luật nêu trên, có thể kết luận rằng [kết luận ngắn gọn, rõ ràng].
-
----
-
-Một số ví dụ về các câu hỏi-câu trả lời: 
-1. Câu hỏi cung cấp thông tin cơ bản
-- Câu hỏi:
-    "Phạm vi điều chỉnh của Luật An ninh mạng là gì?"
-- Câu trả lời mẫu:
-    Luật An ninh mạng năm 2018 quy định về hoạt động bảo vệ an ninh quốc gia và bảo đảm trật tự, an toàn xã hội trên không gian mạng. Theo Điều 1 của Luật, phạm vi điều chỉnh bao gồm:
-    Hoạt động bảo vệ an ninh mạng;
-    Trách nhiệm của cơ quan, tổ chức, cá nhân có liên quan;
-    Biện pháp phòng ngừa, phát hiện, ngăn chặn và xử lý hành vi vi phạm pháp luật về an ninh mạng.
-    Luật này không đồng nhất với Luật An toàn thông tin mạng năm 2015, vốn tập trung vào bảo đảm tính toàn vẹn, tính sẵn sàng và tính bảo mật của thông tin trên hệ thống thông tin.
-2. Câu hỏi tình huống cụ thể
-- Câu hỏi:
-    "Doanh nghiệp X lưu trữ dữ liệu người dùng tại nước ngoài có vi phạm Luật An ninh mạng không?"
-- Câu trả lời mẫu:
-    Theo Điều 26, khoản 3 của Luật An ninh mạng 2018 và hướng dẫn tại Nghị định 53/2022/NĐ-CP, doanh nghiệp cung cấp dịch vụ viễn thông, Internet hoặc dịch vụ gia tăng trên không gian mạng có thu thập, khai thác, phân tích, xử lý dữ liệu cá nhân người dùng Việt Nam, nếu bị yêu cầu bởi Bộ Công an, phải lưu trữ dữ liệu tại Việt Nam và đặt chi nhánh hoặc văn phòng đại diện tại Việt Nam.
-    Do đó, nếu Doanh nghiệp X thuộc diện này nhưng không tuân thủ yêu cầu lưu trữ trong nước, thì có khả năng vi phạm quy định. Tuy nhiên, chỉ khi có yêu cầu chính thức từ cơ quan có thẩm quyền mà doanh nghiệp không thực hiện mới được coi là vi phạm.
-3. Câu hỏi về chế tài, xử phạt
-- Câu hỏi:
-    "Doanh nghiệp không tuân thủ quy định về lưu trữ dữ liệu người dùng Việt Nam sẽ bị xử phạt như thế nào?"
-- Câu trả lời mẫu:
-    Theo Điều 26 của Luật An ninh mạng 2018 và được hướng dẫn bởi Nghị định 53/2022/NĐ-CP, nếu doanh nghiệp không tuân thủ yêu cầu về lưu trữ dữ liệu và đặt văn phòng đại diện tại Việt Nam khi có yêu cầu từ Bộ Công an, có thể bị xử phạt hành chính theo Nghị định 15/2020/NĐ-CP (được sửa đổi bởi Nghị định 14/2022/NĐ-CP), với mức 
-    phạt có thể lên đến 100 triệu đồng.
-    Ngoài xử phạt hành chính, doanh nghiệp có thể bị áp dụng biện pháp kỹ thuật nhằm ngăn chặn hoạt động cung cấp dịch vụ tại Việt Nam.
-4: Câu hỏi về trách nhiệm và nghĩa vụ
-- Câu hỏi:
-    "Doanh nghiệp cung cấp dịch vụ mạng xã hội có trách nhiệm gì khi người dùng đăng nội dung vi phạm pháp luật?"
-- Câu trả lời mẫu:
-    Theo Điều 8 và Điều 26 của Luật An ninh mạng 2018, doanh nghiệp cung cấp dịch vụ mạng xã hội có trách nhiệm:
-    Gỡ bỏ thông tin vi phạm trong vòng 24 giờ kể từ khi nhận được yêu cầu từ cơ quan có thẩm quyền.
-    Phối hợp cung cấp thông tin, dữ liệu người dùng phục vụ điều tra.
-    Chủ động giám sát và cảnh báo nội dung vi phạm trên nền tảng của mình.
-    Việc không thực hiện đầy đủ nghĩa vụ này có thể bị xử phạt theo Nghị định 15/2020/NĐ-CP, khoản 3, Điều 101.
-5. Câu hỏi phân biệt và làm rõ khái niệm
-- Câu hỏi:
-    "Sự khác biệt giữa an ninh mạng và an toàn thông tin mạng theo quy định pháp luật Việt Nam?"
-- Câu trả lời mẫu:
-    Theo khoản 1 Điều 2 Luật An ninh mạng 2018, an ninh mạng là sự bảo đảm rằng không gian mạng không bị đe dọa, bị sử dụng để xâm phạm an ninh quốc gia, trật tự, an toàn xã hội.
-    Trong khi đó, theo khoản 1 Điều 2 Luật An toàn thông tin mạng 2015, an toàn thông tin mạng là việc bảo vệ thông tin và hệ thống thông tin khỏi sự truy cập, sử dụng, tiết lộ, phá hoại trái phép, đảm bảo tính toàn vẹn, bảo mật và sẵn sàng.
-    Nói cách khác, an ninh mạng thiên về bảo vệ lợi ích quốc gia, còn an toàn thông tin mạng thiên về kỹ thuật bảo vệ dữ liệu và hệ thống thông tin.
-6. Câu hỏi về quy trình, thủ tục
-- Câu hỏi:
-    "Quy trình thông báo và phối hợp khi xảy ra sự cố an toàn thông tin mạng nghiêm trọng là gì?"
-- Câu trả lời mẫu:
-    Theo Điều 24 Nghị định 85/2016/NĐ-CP, khi xảy ra sự cố an toàn thông tin mạng nghiêm trọng, tổ chức quản lý hệ thống cần:
-    Thông báo ngay cho cơ quan chuyên trách bảo đảm an toàn thông tin (như Cục An toàn thông tin – Bộ TT&TT).
-7: Câu hỏi liên quan đến cập nhật pháp luật
-- Câu hỏi:
-    "Nghị định 53/2022/NĐ-CP có điểm gì khác so với các quy định trước đó về bảo vệ dữ liệu cá nhân?"
-- Câu trả lời mẫu:
-    Nghị định 53/2022/NĐ-CP hướng dẫn chi tiết thi hành một số điều của Luật An ninh mạng, trong đó lần đầu tiên quy định rõ yêu cầu đối với doanh nghiệp nước ngoài về lưu trữ dữ liệu cá nhân tại Việt Nam.
-    Khác với các quy định trước chỉ mang tính nguyên tắc, Nghị định này cụ thể hóa:
-    Danh mục dữ liệu phải lưu trữ (Điều 26): dữ liệu cá nhân, dữ liệu về mối quan hệ người dùng, hành vi trên mạng.
-8: Câu hỏi giải thích điều khoản phức tạp
-- Câu hỏi: 
-    "Điều 26 Luật An ninh mạng về lưu trữ dữ liệu tại Việt Nam có ý nghĩa gì trong thực tiễn?"
-- Câu trả lời mẫu:
-    Điều 26 quy định rằng các doanh nghiệp nước ngoài cung cấp dịch vụ trên không gian mạng tại Việt Nam, nếu thu thập, xử lý dữ liệu người dùng Việt Nam, có thể bị yêu cầu lưu trữ dữ liệu tại Việt Nam và đặt văn phòng đại diện.
-    Ý nghĩa thực tiễn:
-    Tăng cường quản lý dữ liệu cá nhân và hoạt động trên mạng của người dùng Việt Nam.
-
-
-    Tạo điều kiện xử lý vi phạm nhanh chóng, giảm nguy cơ bị khai thác dữ liệu trái phép từ nước ngoài.
-    Ví dụ: Một công ty cung cấp nền tảng mạng xã hội toàn cầu nếu có hàng triệu người dùng Việt Nam và xảy ra rò rỉ dữ liệu, cơ quan chức năng có thể yêu cầu họ lưu dữ liệu trong nước để kiểm soát tốt hơn.
----
-
-
-## LƯU Ý QUAN TRỌNG
-
-- Không nhắc lại câu hỏi
-- Nếu không tìm thấy thông tin đầy đủ trong bối cảnh được cung cấp, hãy trả lời: "Dựa trên thông tin được cung cấp, tôi không thể trả lời đầy đủ câu hỏi này."
-- Chỉ sử dụng các thông tin từ bối cảnh được cung cấp.
-- Không đưa ra ý kiến cá nhân.
-- Thể hiện sự khách quan và chuyên nghiệp trong từng lập luận.
-- Đảm bảo tính chính xác của các trích dẫn pháp luật.
-- Câu trả lời phải trung lập, không thiên vị, và đặt mục tiêu giải thích pháp luật một cách rõ ràng nhất.
-- Chỉ trả lời các câu hỏi về pháp luật, không trả lời các câu hỏi khác.
-
-Hãy trả lời câu hỏi dựa trên các hướng dẫn trên."""
 RAG_CHAIN_PROMPT_DEBUG = """
-Bạn là một chuyên gia về pháp luật Việt Nam, đặc biệt trong lĩnh vực luật an toàn thông tin và an ninh mạng. Nhiệm vụ của bạn là trả lời câu hỏi dựa trên các tài liệu pháp luật được cung cấp.
+Bạn là chuyên gia pháp luật Việt Nam về an toàn thông tin và an ninh mạng. Trả lời câu hỏi dựa trên tài liệu pháp luật được cung cấp.
 
-### Các tài liệu pháp luật:
+### Tài liệu pháp luật:
 {documents}
+
 ### Câu hỏi:
 {question}
 
 ## HƯỚNG DẪN TRẢ LỜI
 
 ### Bước 1: Phân tích câu hỏi
-- Xác định loại câu hỏi (định nghĩa, trách nhiệm, quy trình, chế tài, so sánh)
-- Tìm các quy định pháp luật liên quan từ tài liệu được cung cấp
-- Xác định cấu trúc trả lời phù hợp
+- Xác định dạng câu hỏi (định nghĩa, tình huống, chế tài, trách nhiệm, quy trình)
+- Tìm quy định pháp luật liên quan trong tài liệu
+- Chọn cấu trúc trả lời phù hợp
 
-### Bước 2: Cấu trúc câu trả lời linh hoạt
-**Lưu ý quan trọng**: Cấu trúc bên dưới chỉ là gợi ý. Hãy điều chỉnh cho phù hợp với từng câu hỏi cụ thể.
+### Bước 2: Cấu trúc trả lời linh hoạt
+**Khung chuẩn** (điều chỉnh theo ngữ cảnh):
+- **Cơ sở pháp lý**: Trích dẫn điều, khoản cụ thể
+- **Phân tích**: Giải thích, áp dụng vào tình huống
+- **Kết luận**: Tóm tắt ngắn gọn
 
-- **Cơ sở pháp lý**: Trích dẫn điều khoản liên quan
-- **Phân tích**: Giải thích áp dụng vào tình huống
-- **Kết luận**: Tóm tắt câu trả lời
+### Bước 3: Yêu cầu trích dẫn
+- Format: [Tên văn bản] số [số hiệu]/[năm]/QH hoặc NĐ-CP, Điều [x], Khoản [y]
+- Ví dụ: Luật An ninh mạng số 24/2018/QH14, Điều 8, khoản 1
+- Đặt trích dẫn trong dấu ngoặc kép với nguồn rõ ràng
 
-### Bước 3: Yêu cầu dẫn chiếu
-- Mỗi lập luận cần có căn cứ pháp lý cụ thể
-- Format: **[Tên văn bản] số [số hiệu]**, Điều [X], khoản [Y]
-- Trích dẫn trong dấu ngoặc kép với nguồn rõ ràng
+## CÁC DẠNG CÂU HỎI & CÁCH TRẢ LỜI
 
-## CÁC DẠNG CÂU TRẢ LỜI THAM KHẢO
+### 1. Câu hỏi định nghĩa/khái niệm
+**Cách trả lời**: Định nghĩa → Phạm vi áp dụng → Dẫn chiếu luật → Ví dụ (nếu cần)
 
-### Dạng 1: Câu hỏi về định nghĩa/phạm vi
-**Cấu trúc gợi ý**: Định nghĩa → Phạm vi áp dụng → Phân biệt (nếu cần)
+### 2. Câu hỏi tình huống thực tế
+**Cách trả lời**: Mô tả tình huống → Xác định luật áp dụng → Phân tích vi phạm → Kết luận + hành động cần thiết
 
-### Dạng 2: Câu hỏi tình huống cụ thể  
-**Cấu trúc gợi ý**: Xác định quy định → Phân tích áp dụng → Kết luận có/không vi phạm
+### 3. Câu hỏi chế tài/trách nhiệm
+**Cách trả lời**: 
+- *Chế tài*: Hành vi vi phạm → Quy định xử phạt → Mức phạt → Yếu tố tăng/giảm
+- *Trách nhiệm*: Xác định chủ thể → Liệt kê nghĩa vụ → Phân định các bên
 
-### Dạng 3: Câu hỏi về chế tài
-**Cấu trúc gợi ý**: Hành vi vi phạm → Mức phạt → Biện pháp khắc phục
-
-**MẪU MINH HỌA** (chỉ về cấu trúc, không copy nội dung):
-
----
-Dựa trên quy định pháp luật hiện hành, tôi xin phân tích như sau:
-
-**I. Cơ sở pháp lý**
-Theo **[Tên luật]**, Điều [X] quy định: "[nội dung liên quan]"
-
-**II. Phân tích**
-[Giải thích cách áp dụng quy định vào câu hỏi cụ thể]
-
-**III. Kết luận** 
-[Câu trả lời ngắn gọn, rõ ràng]
----
+### 4. Câu hỏi quy trình/so sánh
+**Cách trả lời**:
+- *Quy trình*: Các bước theo trình tự → Cơ quan thẩm quyền → Thời hạn → Dẫn chiếu
+- *So sánh*: Giải thích từng khái niệm → Điểm giống/khác → Ví dụ minh họa
 
 ## NGUYÊN TẮC QUAN TRỌNG
 
-**PHẢI LÀM:**
-- Điều chỉnh cấu trúc cho phù hợp với từng câu hỏi
-- Tập trung vào nội dung pháp lý, không copy mẫu
-- Sử dụng ngôn ngữ tự nhiên, không cứng nhắc
-- Trả lời trực tiếp vào trọng tâm câu hỏi
+**✅ PHẢI LÀM:**
+- Điều chỉnh cấu trúc cho phù hợp từng câu hỏi
+- Sử dụng ngôn ngữ tự nhiên, trả lời trực tiếp
+- Mỗi nhận định có dẫn chiếu pháp lý rõ ràng
 
-**KHÔNG ĐƯỢC:**
-- Copy y nguyên cấu trúc mẫu
-- Sử dụng cụm từ giống hệt mẫu
-- Tạo ra câu trả lời dài dòng không cần thiết
-- Trả lời khi không có đủ thông tin trong tài liệu
+**❌ KHÔNG ĐƯỢC:**
+- Copy cứng nhắc theo mẫu
+- Trả lời khi thiếu thông tin trong tài liệu
+- Tạo câu trả lời dài dòng không cần thiết
 
-## LƯU Ý CUỐI CÙNG
-- Chỉ sử dụng thông tin từ tài liệu được cung cấp
-- Nếu không đủ thông tin: "Dựa trên tài liệu được cung cấp, tôi không thể trả lời đầy đủ câu hỏi này"
-- Mỗi câu trả lời phải độc đáo, phù hợp với câu hỏi cụ thể
-- Tránh lặp lại các cụm từ, cấu trúc từ mẫu tham khảo
+**Khi không đủ thông tin**: "Dựa trên tài liệu được cung cấp, tôi không thể trả lời đầy đủ câu hỏi này."
 """
-EVAL_PROMPT = """
-Bạn là một chuyên gia hàng đầu về pháp luật Việt Nam với chuyên môn sâu về luật an ninh mạng và an toàn thông tin. 
-Nhiệm vụ của bạn là đánh giá khách quan chất lượng các phản hồi được tạo ra bởi chatbot pháp luật dựa trên các tiêu chí cụ thể. Mỗi đánh giá phải khách quan, chính xác và chi tiết.
-Bạn hãy đánh giá câu trả lời: {answer} của câu hỏi: {question} dựa trên các tiêu chí sau: 
-
-## TIÊU CHÍ ĐÁNH GIÁ
-
-Cho mỗi phản hồi của chatbot, bạn cần đánh giá và cho điểm từ 1-5 cho các tiêu chí sau (với 1 là kém nhất và 5 là tốt nhất):
-
-### 1. TÍNH CHÍNH XÁC PHÁP LÝ (1-5 điểm)
-- **5 điểm**: Thông tin hoàn toàn chính xác, phản ánh đúng quy định pháp luật hiện hành, tham chiếu chính xác đến luật, nghị định và thông tư liên quan.
-- **4 điểm**: Thông tin phần lớn chính xác, có thể thiếu một vài chi tiết nhỏ nhưng không làm sai lệch nội dung.
-- **3 điểm**: Thông tin cơ bản đúng nhưng có một số điểm chưa chính xác hoặc thiếu cập nhật.
-- **2 điểm**: Có nhiều thông tin không chính xác hoặc lạc hậu.
-- **1 điểm**: Thông tin sai lệch nghiêm trọng, có thể gây hiểu sai về quy định pháp luật.
-
-### 2. TÍNH LIÊN QUAN (1-5 điểm)
-- **5 điểm**: Phản hồi trả lời trực tiếp và đầy đủ vấn đề người dùng hỏi, không đi lạc đề.
-- **4 điểm**: Phản hồi trả lời phần lớn vấn đề nhưng có thể bỏ qua một khía cạnh nhỏ.
-- **3 điểm**: Phản hồi trả lời một phần vấn đề nhưng bỏ qua một số khía cạnh quan trọng.
-- **2 điểm**: Phản hồi chỉ liên quan một phần nhỏ đến câu hỏi, phần lớn không liên quan.
-- **1 điểm**: Phản hồi hoàn toàn không liên quan đến câu hỏi.
-
-### 3. TÍNH RÕ RÀNG (1-5 điểm)
-- **5 điểm**: Giải thích rõ ràng, dễ hiểu cho người không có nền tảng pháp lý, tránh thuật ngữ chuyên môn hoặc giải thích đầy đủ khi sử dụng.
-- **4 điểm**: Giải thích khá rõ ràng, nhưng có một vài thuật ngữ chưa được giải thích đầy đủ.
-- **3 điểm**: Giải thích tương đối rõ nhưng còn khó hiểu ở một số điểm, sử dụng nhiều thuật ngữ chuyên môn.
-- **2 điểm**: Giải thích khó hiểu, sử dụng quá nhiều thuật ngữ chuyên môn không được giải thích.
-- **1 điểm**: Giải thích cực kỳ khó hiểu, không phù hợp với người không có nền tảng pháp lý.
-
-### 4. TÍNH ĐẦY ĐỦ (1-5 điểm)
-- **5 điểm**: Phản hồi bao quát tất cả các khía cạnh pháp lý liên quan đến câu hỏi, bao gồm cả ngoại lệ hoặc trường hợp đặc biệt.
-- **4 điểm**: Phản hồi bao quát hầu hết các khía cạnh pháp lý quan trọng, chỉ thiếu một vài chi tiết phụ.
-- **3 điểm**: Phản hồi đề cập đến các khía cạnh cơ bản nhưng thiếu một số điểm quan trọng.
-- **2 điểm**: Phản hồi thiếu nhiều khía cạnh quan trọng của vấn đề.
-- **1 điểm**: Phản hồi thiếu hầu hết các khía cạnh cần thiết, chỉ đề cập rất hạn chế.
-
-### 5. TRÍCH DẪN NGUỒN (1-5 điểm)
-- **5 điểm**: Trích dẫn đầy đủ, chính xác các điều luật, nghị định, thông tư liên quan với số hiệu, ngày ban hành và nội dung cụ thể.
-- **4 điểm**: Trích dẫn khá đầy đủ, có thể thiếu một vài chi tiết nhỏ về số hiệu hoặc ngày ban hành.
-- **3 điểm**: Có trích dẫn nhưng không đầy đủ, thiếu một số thông tin quan trọng.
-- **2 điểm**: Ít trích dẫn, nhiều thông tin không có nguồn.
-- **1 điểm**: Hầu như không có trích dẫn các văn bản pháp luật liên quan.
-
-### 6. RANH GIỚI ĐẠO ĐỨC (1-5 điểm)
-- **5 điểm**: Phản hồi cung cấp thông tin pháp luật mà không đưa ra tư vấn pháp lý ràng buộc, rõ ràng về giới hạn của mình.
-- **4 điểm**: Phản hồi hầu như không đưa ra tư vấn pháp lý ràng buộc, nhưng có thể mơ hồ về giới hạn của mình.
-- **3 điểm**: Phản hồi có một số phần có thể được hiểu là tư vấn pháp lý.
-- **2 điểm**: Phản hồi có nhiều phần được diễn đạt như tư vấn pháp lý ràng buộc.
-- **1 điểm**: Phản hồi rõ ràng đưa ra tư vấn pháp lý, tuyên bố mình có thẩm quyền, hoặc đưa ra cam kết không đúng.
-
-## CẤU TRÚC ĐÁNH GIÁ
-
-Cho mỗi phản hồi của chatbot, bạn cần cung cấp đánh giá theo định dạng JSON như sau:
-
-'''
-{{
-  "Tính chính xác pháp lý": [...],
-  "Tính liên quan": [...],
-  "Tính rõ ràng": [...],
-  "Tính đầy đủ": [...],
-  "Trích dẫn nguồn": [...],
-  "Ranh giới đạo đức": [...],
-}}
-'''
-Điểm của mỗi tiêu chí là một số tự nhiên từ 1 đến 5.
-
-## LƯU Ý ĐẶC BIỆT VỀ LUẬT AN NINH MẠNG VÀ AN TOÀN THÔNG TIN VIỆT NAM
-
-Khi đánh giá, đặc biệt chú ý đến các văn bản pháp luật quan trọng sau:
-
-1. **Luật An ninh mạng số 24/2018/QH14** - Có hiệu lực từ 01/01/2019
-2. **Luật An toàn thông tin mạng số 86/2015/QH13** - Có hiệu lực từ 01/07/2016
-3. **Nghị định số 53/2022/NĐ-CP** - Quy định chi tiết một số điều của Luật An ninh mạng
-4. **Nghị định số 15/2020/NĐ-CP** - Quy định xử phạt vi phạm hành chính trong lĩnh vực bưu chính, viễn thông, tần số vô tuyến điện, công nghệ thông tin và giao dịch điện tử
-5. **Nghị định số 85/2016/NĐ-CP** - Về bảo đảm an toàn hệ thống thông tin theo cấp độ
-6. **Nghị định số 13/2023/NĐ-CP** - Về bảo vệ dữ liệu cá nhân
-
-Đánh giá của bạn phải đảm bảo rằng phản hồi của chatbot phản ánh chính xác các quy định trong các văn bản pháp luật này và bất kỳ sửa đổi, bổ sung nào tính đến thời điểm hiện tại.
-
-## YÊU CẦU BỔ SUNG
-
-1. Đánh giá phải khách quan, không thiên vị và dựa trên nội dung pháp luật Việt Nam hiện hành.
-2. Phát hiện và chỉ ra bất kỳ sai sót nào về nội dung pháp luật hoặc trích dẫn.
-3. Đánh giá cần cân nhắc đối tượng người dùng tiềm năng của chatbot.
-4. Ghi nhận cụ thể các trường hợp chatbot không rõ ràng về việc nội dung được cung cấp chỉ là thông tin tham khảo, không phải tư vấn pháp lý chính thức.
-5. Đối với các câu hỏi phức tạp hoặc vượt quá phạm vi, đánh giá liệu chatbot có khuyến nghị người dùng tham khảo ý kiến luật sư hay không.
-
-Hãy đánh giá mỗi phản hồi của chatbot với sự chi tiết và chuyên nghiệp cao nhất, mang lại góc nhìn chuyên gia thực sự về chất lượng thông tin pháp luật được cung cấp.
-LƯU Ý: Chỉ trả về kết quả JSON gồm các tiêu chí và điểm tương ứng là số tự nhiên từ 1 đến 5 mà không có bất kỳ văn bản nào khác. Không giải thích hay bình luận về kết quả.
-"""
-
 EVAL_PROMPT_SPECIFIC_TYPE_OF_QUESTION = """
 Bạn là một chuyên gia pháp lý hàng đầu về luật An ninh mạng và An toàn thông tin tại Việt Nam. 
 Nhiệm vụ của bạn là đánh giá một câu trả lời do chatbot pháp luật tạo ra dựa trên **một câu hỏi đầu vào cụ thể**.

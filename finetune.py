@@ -6,7 +6,15 @@ from sentence_transformers.training_args import BatchSamplers
 import pandas as pd
 from datasets import Dataset
 import argparse
-def finetune_embedding(train_dir: str, eval_dir: str, model_path: str, output: str, epochs: int, batch_size: int, learning_rate: float, weight_decay: float, device: str):
+def finetune_embedding(train_dir: str, 
+                       eval_dir: str, 
+                       model_path: str, 
+                       output: str, 
+                       epochs: int, 
+                       batch_size: int, 
+                       learning_rate: float, 
+                       weight_decay: float, 
+                       device: str):
     """
         dataset: {"question": "<question>", "context": "<relevant context to answer>"}
     """ 
