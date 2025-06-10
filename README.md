@@ -1,5 +1,5 @@
 
-# 🇻🇳 Vietnamese Legal Chatbot
+# 🇻🇳 Chatbot for Vietnamese Law
 
 A Retrieval-Augmented Generation (RAG) powered chatbot designed to assist users in querying Vietnamese law—especially on **Cybersecurity, Network Safety**, and **Information Systems**—in a friendly and legally accurate way.
 
